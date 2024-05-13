@@ -36,6 +36,16 @@ public:
         this->response_time = 0;
     }
 
+    proc() {
+        this->pid = 0;
+        this->arrival_time = 0;
+        this->execution_time = 0;
+        this->turnarround_time = 0;
+        this->waiting_time = 0;
+        this->completion_time = 0;
+        this->response_time = 0;
+    }
+
     ~proc() {}
 
     void findTurnarroundTime()
