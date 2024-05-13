@@ -1,6 +1,7 @@
 #include "proc.cpp"
 #include <set>
 #include <iostream>
+
 using namespace std;
 
 // Algorithims: Round Robin, First Come First Serve, Shortest Job First, Multilevel Feedback Queue
@@ -31,5 +32,6 @@ set<proc> initSetProc(int n)
 int main(int argc, char const *argv[])
 {
     /* code */
+    cout << "hello world";
     return 0;
 }
