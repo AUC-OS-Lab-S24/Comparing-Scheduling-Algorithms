@@ -48,7 +48,7 @@ void roundRobin(vector<proc> &procs, int quantum)
     int remaining = n;
     int turn = 0;
 
-    while (remaining > 0)
+    while (remaining > 0 && n > 0)
     {
         // represents a time quantum
         int remainingQuantum = quantum;
@@ -162,8 +162,9 @@ vector<proc> scheduleQueueRoundRobin(vector<proc> &procs, int quantum, int &tota
     while (remaining > 0)
     {
         int remainingQuantum = quantum;
-        while (remainingQuantum > 0)
+        while (remainingQuantum > 0 && remaining > 0 && n > 0)
         {
+            turn = turn % n;
             // attempt to give turn to a process with that pid for time quantum
             if (procs[turn].arrival_time > time)
             {
@@ -197,13 +198,19 @@ vector<proc> scheduleQueueRoundRobin(vector<proc> &procs, int quantum, int &tota
                     procs[turn].completion_time = time;
                     procs[turn].turnarround_time = procs[turn].completion_time - procs[turn].arrival_time;
                     procs[turn].waiting_time = procs[turn].turnarround_time - procs[turn].execution_time;
+                    // remove process from procs and update remaininh
+                    procs.erase(procs.begin() + turn);
+                    n--;
                     remaining--;
+                    if (n == 0)
+                        break;
                     turn = (turn + 1) % n; // next turn if process has completed
                 }
             }
             else
             {
-                turn = (turn + 1) % n; // next turn if process has completed
+                // find next turn of process that has not completed
+                turn = (turn + 1) % n;
                 continue;
             }
         }
