@@ -137,9 +137,162 @@ void shortestJobFirst(vector<proc> &procs) // https://www.geeksforgeeks.org/prog
     }
 }
 
-void multilevelFeedbackQueue(vector<proc> &procs)
+enum SchedulerType
 {
-    // TODO
+    ROUND_ROBIN,
+    FIRST_COME_FIRST_SERVE,
+    SHORTEST_JOB_FIRST
+};
+
+vector<proc> scheduleQueueRoundRobin(vector<proc> &procs, int quantum, int &totalRemaining)
+{
+    // we will run round robin but we will return the proccess that will be downgraded in a vecotor and we will remove them from procs and update remaining if a processes ends
+    vector<proc> downgraded;
+    int n = procs.size();
+    int execution_times[n]; // remaining execution time for each process
+    for (auto p : procs)
+    {
+        execution_times[p.pid] = p.execution_time;
+    }
+    int time = 0;
+    int remaining = n;
+    int turn = 0;
+
+    // represents a time quantum
+    while (remaining > 0)
+    {
+        int remainingQuantum = quantum;
+        while (remainingQuantum > 0)
+        {
+            // attempt to give turn to a process with that pid for time quantum
+            if (procs[turn].arrival_time > time)
+            {
+                turn = (turn + 1) % n; // next turn if not arrived
+                continue;
+            }
+            if (execution_times[procs[turn].pid] > 0) // proc has not completed
+            {
+                if (procs[turn].response_time == -1)
+                {
+                    procs[turn].response_time = time - procs[turn].arrival_time;
+                }
+                if (execution_times[procs[turn].pid] > remainingQuantum) // proc will not complete in this quantum
+                {
+                    time += remainingQuantum;
+                    execution_times[procs[turn].pid] -= remainingQuantum;
+                    if (remainingQuantum == quantum)
+                    {
+                        downgraded.push_back(procs[turn]);
+                        procs.erase(procs.begin() + turn);
+                        n--;
+                    }
+                    remainingQuantum = 0;
+                    turn = (turn + 1) % n; // next turn if process has not completed
+                }
+                else
+                {
+                    time += execution_times[procs[turn].pid];
+                    remainingQuantum -= execution_times[procs[turn].pid];
+                    execution_times[procs[turn].pid] = 0;
+                    procs[turn].completion_time = time;
+                    procs[turn].turnarround_time = procs[turn].completion_time - procs[turn].arrival_time;
+                    procs[turn].waiting_time = procs[turn].turnarround_time - procs[turn].execution_time;
+                    remaining--;
+                    turn = (turn + 1) % n; // next turn if process has completed
+                }
+            }
+            else
+            {
+                turn = (turn + 1) % n; // next turn if process has completed
+                continue;
+            }
+        }
+    }
+}
+
+vector<proc> scheduleQueueFirstComeFirstServe(vector<proc> &procs, int &totalRemaining)
+{
+    // we will run first come first serve and return the proccess that will be downgraded in a vecotor and we will remove them from procs and update remaining if a processes ends
+}
+
+vector<proc> scheduleQueueShortestJobFirst(vector<proc> &procs, int &totalRemaining)
+{
+    // we will run shortest job first
+}
+
+// feedback mechanism: if a process in a lower-priority queue uses up its time slice, it may be moved to a higher-priority queue to ensure it gets more CPU time.
+void multilevelFeedbackQueue(vector<proc> &procs, int numberOfQueues = 3, vector<int> quantums = {2, 4, 8}, vector<SchedulerType> SchedulerTypes = {ROUND_ROBIN, ROUND_ROBIN, ROUND_ROBIN})
+{
+    int n = procs.size();
+    int execution_times[n]; // remaining execution time for each process
+    for (auto p : procs)
+    {
+        execution_times[p.pid] = p.execution_time;
+    }
+    int time = 0;
+    int remaining = n;
+    int turn = 0;
+    // initialise queues
+    vector<vector<proc>> queues;
+    for (int i = 0; i < numberOfQueues; i++)
+    {
+        vector<proc> q;
+        queues.push_back(q);
+    }
+
+    // copy all procs into the first queue
+    for (auto aproc : procs)
+    {
+        proc p(aproc.pid, aproc.arrival_time, aproc.execution_time);
+        queues[0].push_back(p);
+    }
+
+    while (remaining > 0)
+    {
+        for (int i = 0; i < numberOfQueues; i++)
+        {
+            // check if queue is empty or has no arrived yet
+            if (queues[i].size() == 0)
+            {
+                continue;
+            }
+            bool hasArrived = false;
+            for (auto p : queues[i])
+            {
+                if (p.arrival_time <= time)
+                {
+                    hasArrived = true;
+                    break;
+                }
+            }
+            if (!hasArrived)
+            {
+                continue;
+            }
+            // Call strategy on queue i
+            vector<proc> downgrade;
+            if (SchedulerTypes[i] == ROUND_ROBIN)
+            {
+                downgrade = scheduleQueueRoundRobin(queues[i], quantums[i], remaining);
+            }
+            else if (SchedulerTypes[i] == FIRST_COME_FIRST_SERVE)
+            {
+                downgrade = scheduleQueueFirstComeFirstServe(queues[i], remaining);
+            }
+            else if (SchedulerTypes[i] == SHORTEST_JOB_FIRST)
+            {
+                downgrade = scheduleQueueShortestJobFirst(queues[i], remaining);
+            }
+            // add downgraded processes to next queue
+            for (auto p : downgrade)
+            {
+                if (i + 1 < numberOfQueues)
+                    queues[i + 1].push_back(p);
+                else
+                    queues[0].push_back(p); // to implement feedback
+            }
+        }
+    }
 }
 
 int main(int argc, char const *argv[])
