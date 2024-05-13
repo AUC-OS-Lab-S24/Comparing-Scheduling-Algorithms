@@ -6,7 +6,7 @@ using namespace std;
 
 // Algorithims: Round Robin, First Come First Serve, Shortest Job First, Multilevel Feedback Queue
 // Initialise a set of process with arrival time (which will be incremented one by one), execution_time (random value from 1 to 50), pids (start from 0 and increment)
-vector<proc> initSetProc(int n, bool random = true)
+vector<proc> initProcVec(int n, bool random = true)
 {
     vector<proc> procs;
     for (int i = 0; i < n; i++)
@@ -92,7 +92,7 @@ void roundRobin(vector<proc> &procs, int quantum)
 int main(int argc, char const *argv[])
 {
     // tests for round robin
-    vector<proc> procs = initSetProc(3, false);
+    vector<proc> procs = initProcVec(3, false);
     roundRobin(procs, 3);
     for (auto p : procs)
     {
