@@ -2,11 +2,11 @@
 struct proc
 {
     int pid;
-    enum procstate state;
+    // enum procstate state;
 
-    // TAT = WT + BT
+    // TAT = WT + ET
     // RT = TIME OF FIRST SCHEDULE - AT
-    // WT = TAT - BT
+    // WT = TAT - ET
     // TAT = CT - AT
 
     int waiting_time;
