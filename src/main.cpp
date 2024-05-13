@@ -211,14 +211,14 @@ vector<proc> scheduleQueueRoundRobin(vector<proc> &procs, int quantum, int &tota
     }
 }
 
-vector<proc> scheduleQueueFirstComeFirstServe(vector<proc> &procs, int &totalRemaining)
+vector<proc> scheduleQueueFirstComeFirstServe(vector<proc> &procs, int quantum, int &totalRemaining)
 {
     // we will run first come first serve and return the proccess that will be downgraded in a vecotor and we will remove them from procs and update remaining if a processes ends
 }
 
-vector<proc> scheduleQueueShortestJobFirst(vector<proc> &procs, int &totalRemaining)
+vector<proc> scheduleQueueShortestJobFirst(vector<proc> &procs, int quantum, int &totalRemaining)
 {
-    // we will run shortest job first
+    // we will run shortest job first and return the proccess that will be downgraded in a vecotor and we will remove them from procs and update remaining if a processes ends
 }
 
 // feedback mechanism: if a process in a lower-priority queue uses up its time slice, it may be moved to a higher-priority queue to ensure it gets more CPU time.
@@ -278,11 +278,11 @@ void multilevelFeedbackQueue(vector<proc> &procs, int numberOfQueues = 3, vector
             }
             else if (SchedulerTypes[i] == FIRST_COME_FIRST_SERVE)
             {
-                downgrade = scheduleQueueFirstComeFirstServe(queues[i], remaining);
+                downgrade = scheduleQueueFirstComeFirstServe(queues[i], quantums[i], remaining);
             }
             else if (SchedulerTypes[i] == SHORTEST_JOB_FIRST)
             {
-                downgrade = scheduleQueueShortestJobFirst(queues[i], remaining);
+                downgrade = scheduleQueueShortestJobFirst(queues[i], quantums[i], remaining);
             }
             // add downgraded processes to next queue
             for (auto p : downgrade)
