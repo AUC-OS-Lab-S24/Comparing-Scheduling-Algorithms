@@ -56,3 +56,5 @@ dkms.conf
 
 # binary
 myapp
+
+src/main
