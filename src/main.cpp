@@ -150,6 +150,9 @@ int main(int argc, char const *argv[])
     cout << endl
          << endl
          << "Test for shortest job first" << endl;
+
+    // tests for FCFS
+
     // tests for shortest job first
     procs = initProcVec(5, false);
     shortestJobFirst(procs);
