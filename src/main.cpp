@@ -137,6 +137,11 @@ void shortestJobFirst(vector<proc> &procs) // https://www.geeksforgeeks.org/prog
     }
 }
 
+void multilevelFeedbackQueue(vector<proc> &procs)
+{
+    // TODO
+}
+
 int main(int argc, char const *argv[])
 {
     // tests for round robin
@@ -172,5 +177,5 @@ int main(int argc, char const *argv[])
 
     // tests for MLFQ
 
-        return 0;
+    return 0;
 }
