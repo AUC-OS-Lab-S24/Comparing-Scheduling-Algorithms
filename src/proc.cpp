@@ -25,6 +25,18 @@ public:
     {
         return pid < other_process.pid; // sort by id
     }
+ 
+    proc(int pid, int arrival_time, int execution_time) {
+        this->pid = pid;
+        this->arrival_time = arrival_time;
+        this->execution_time = execution_time;
+        this->turnarround_time = 0;
+        this->waiting_time = 0;
+        this->completion_time = 0;
+        this->response_time = 0;
+    }
+
+    ~proc() {}
 
     void findTurnarroundTime()
     {

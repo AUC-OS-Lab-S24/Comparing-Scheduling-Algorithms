@@ -53,5 +53,8 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+
+# binary
 myapp
+
 src/main
