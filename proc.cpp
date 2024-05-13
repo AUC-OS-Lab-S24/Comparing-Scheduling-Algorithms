@@ -18,5 +18,4 @@ struct proc
     int completion_time; // time process completes execution aka exit time
 
     int response_time; // time between arrival time and getting the CPU for the first time
-    int
-}
+};
