@@ -145,7 +145,7 @@ enum SchedulerType
     SHORTEST_JOB_FIRST
 };
 
-vector<proc> scheduleQueueRoundRobin(vector<proc> &procs, int quantum, int &totalRemaining)
+vector<proc> scheduleQueueRoundRobin(vector<proc> &procs, int quantum, int &totalRemaining, int &time)
 {
     // we will run round robin but we will return the proccess that will be downgraded in a vecotor and we will remove them from procs and update remaining if a processes ends
     vector<proc> downgraded;
@@ -155,7 +155,6 @@ vector<proc> scheduleQueueRoundRobin(vector<proc> &procs, int quantum, int &tota
     {
         execution_times[p.pid] = p.execution_time;
     }
-    int time = 0;
     int remaining = n;
     int turn = 0;
 
@@ -209,6 +208,7 @@ vector<proc> scheduleQueueRoundRobin(vector<proc> &procs, int quantum, int &tota
             }
         }
     }
+    return downgraded;
 }
 
 vector<proc> scheduleQueueFirstComeFirstServe(vector<proc> &procs, int quantum, int &totalRemaining, int &time)
@@ -287,9 +287,61 @@ vector<proc> scheduleQueueFirstComeFirstServe(vector<proc> &procs, int quantum, 
     return downgraded;
 }
 
-vector<proc> scheduleQueueShortestJobFirst(vector<proc> &procs, int quantum, int &totalRemaining)
+vector<proc> scheduleQueueShortestJobFirst(vector<proc> &procs, int quantum, int &totalRemaining, int &time)
 {
     // we will run shortest job first and return the proccess that will be downgraded in a vecotor and we will remove them from procs and update remaining if a processes ends
+    vector<proc> downgraded;
+    int n = procs.size();
+    int execution_times[n]; // remaining execution time for each process
+    for (auto p : procs)
+    {
+        execution_times[p.pid] = p.execution_time;
+    }
+    int remaining = n;
+    vector<int> procTurns(n, 0);
+    while (remaining > 0)
+    {
+        int min = INT_MAX;
+        int turn = -1;
+        for (int i = 0; i < n; i++)
+        {
+            if (procs[i].arrival_time <= time && execution_times[i] < min && execution_times[i] > 0)
+            {
+                min = execution_times[i];
+                turn = i;
+            }
+        }
+        if (turn == -1)
+        {
+            time++;
+            continue;
+        }
+        procTurns[turn] += 1;
+        if (procs[turn].response_time == -1)
+        {
+            procs[turn].response_time = time - procs[turn].arrival_time;
+        }
+        time += 1;
+        execution_times[turn] -= 1;
+        if (execution_times[turn] == 0)
+        {
+            remaining--;
+            procs[turn].completion_time = time;
+            procs[turn].turnarround_time = procs[turn].completion_time - procs[turn].arrival_time;
+            procs[turn].waiting_time = procs[turn].turnarround_time - procs[turn].execution_time;
+            totalRemaining--;
+        }
+        else
+        {
+            if (procTurns[turn] == quantum)
+            {
+                downgraded.push_back(procs[turn]);
+                procs.erase(procs.begin() + turn);
+                n--;
+            }
+        }
+    }
+    return downgraded;
 }
 
 // feedback mechanism: if a process in a lower-priority queue uses up its time slice, it may be moved to a higher-priority queue to ensure it gets more CPU time.
@@ -345,15 +397,57 @@ void multilevelFeedbackQueue(vector<proc> &procs, int numberOfQueues = 3, vector
             vector<proc> downgrade;
             if (SchedulerTypes[i] == ROUND_ROBIN)
             {
-                downgrade = scheduleQueueRoundRobin(queues[i], quantums[i], remaining);
+                cout << "Scheduling queue " << i << " with round robin" << endl;
+                cout << "Quantum: " << quantums[i] << endl;
+                cout << "Remaining: " << remaining << endl;
+                for (auto p : queues[i])
+                {
+                    if (p.arrival_time <= time)
+                        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << endl;
+                }
+                downgrade = scheduleQueueRoundRobin(queues[i], quantums[i], remaining, time);
+                cout << "Downgraded: " << downgrade.size() << endl;
+                for (auto p : queues[i])
+                {
+                    if (p.arrival_time <= time)
+                        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << endl;
+                }
             }
             else if (SchedulerTypes[i] == FIRST_COME_FIRST_SERVE)
             {
-                downgrade = scheduleQueueFirstComeFirstServe(queues[i], quantums[i], remaining);
+                cout << "Scheduling queue " << i << " with first come first serve" << endl;
+                cout << "Quantum: " << quantums[i] << endl;
+                cout << "Remaining: " << remaining << endl;
+                for (auto p : queues[i])
+                {
+                    if (p.arrival_time <= time)
+                        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << endl;
+                }
+                downgrade = scheduleQueueFirstComeFirstServe(queues[i], quantums[i], remaining, time);
+                cout << "Downgraded: " << downgrade.size() << endl;
+                for (auto p : queues[i])
+                {
+                    if (p.arrival_time <= time)
+                        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << endl;
+                }
             }
             else if (SchedulerTypes[i] == SHORTEST_JOB_FIRST)
             {
-                downgrade = scheduleQueueShortestJobFirst(queues[i], quantums[i], remaining);
+                cout << "Scheduling queue " << i << " with shortest job first" << endl;
+                cout << "Quantum: " << quantums[i] << endl;
+                cout << "Remaining: " << remaining << endl;
+                for (auto p : queues[i])
+                {
+                    if (p.arrival_time <= time)
+                        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << endl;
+                }
+                downgrade = scheduleQueueShortestJobFirst(queues[i], quantums[i], remaining, time);
+                cout << "Downgraded: " << downgrade.size() << endl;
+                for (auto p : queues[i])
+                {
+                    if (p.arrival_time <= time)
+                        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << endl;
+                }
             }
             // add downgraded processes to next queue
             for (auto p : downgrade)
@@ -401,6 +495,14 @@ int main(int argc, char const *argv[])
     cout << "\nTest for FCFS" << endl;
     procs = initProcVec(5, false);
     first_come_first_serve(procs);
+    for (auto p : procs)
+    {
+        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << " completion_time: " << p.completion_time << " response_time: " << p.response_time << " waiting_time: " << p.waiting_time << " turnarround_time: " << p.turnarround_time << endl;
+    }
+
+    cout << "\nTest for multilevel feedback queue" << endl;
+    procs = initProcVec(5, false);
+    multilevelFeedbackQueue(procs);
     for (auto p : procs)
     {
         cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << " completion_time: " << p.completion_time << " response_time: " << p.response_time << " waiting_time: " << p.waiting_time << " turnarround_time: " << p.turnarround_time << endl;
