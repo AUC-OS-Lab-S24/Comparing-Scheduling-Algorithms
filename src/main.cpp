@@ -221,6 +221,77 @@ vector<proc> scheduleQueueRoundRobin(vector<proc> &procs, int quantum, int &tota
 vector<proc> scheduleQueueFirstComeFirstServe(vector<proc> &procs, int quantum, int &totalRemaining, int &time)
 {
     // we will run first come first serve and return the proccess that will be downgraded in a vecotor and we will remove them from procs and update remaining if a processes ends
+    int n = procs.size();
+
+    int remaining = n;
+
+    std::queue <int> fifo;
+
+    std::vector<proc> downgraded;
+    downgraded = {};
+    std::vector<proc> procs_sorted;
+
+    procs_sorted = procs;
+
+    std::sort(procs_sorted.begin(), procs_sorted.end(), compareByArrivalTime);
+
+    int current_executing_process = 0;
+
+    while (remaining > 0) {
+        // add all processes that have arrived by the current time to the queue
+        while (current_executing_process < n && procs[current_executing_process].arrival_time <= time) {
+            fifo.push(current_executing_process);
+            current_executing_process++;
+        }
+
+        if (!fifo.empty()) {
+                int process_to_execute = fifo.front();
+
+                procs_sorted[process_to_execute].response_time = time - procs_sorted[process_to_execute].arrival_time;
+                if (procs_sorted[process_to_execute].execution_time > quantum) {
+                    procs_sorted[process_to_execute].execution_time -= quantum; 
+                    time += quantum;
+
+                    // downgrade the processes since it wont finish executing
+                    downgraded.push_back(procs_sorted[process_to_execute]);
+                }
+                else {
+                    fifo.pop();
+
+                    // If the process is starting for the first time, set its response time
+                    if (procs_sorted[process_to_execute].response_time == -1) {
+                        procs_sorted[process_to_execute].response_time = time - procs_sorted[process_to_execute].arrival_time;
+                    }
+
+                    // Execute the process
+                    time += procs_sorted[process_to_execute].execution_time;
+
+                    // Calculate completion, turnaround, and waiting times
+                    procs_sorted[process_to_execute].completion_time = time;
+                    procs_sorted[process_to_execute].turnarround_time = procs[process_to_execute].completion_time - procs[process_to_execute].arrival_time;
+                    procs_sorted[process_to_execute].waiting_time = procs[process_to_execute].turnarround_time - procs[process_to_execute].execution_time;
+                }
+                // Decrement the remaining process count
+                remaining--;
+
+        } else {
+            // If no process is in the queue, move time forward to the next process arrival
+            if (current_executing_process < n) {
+                time = procs[current_executing_process].arrival_time;
+            }
+        }
+    }
+
+    //update procs according to procs_sorted on same pid
+    for (int i = 0; i < n; i++) {
+        for (int j = 0; j < n; j++) {
+            if (procs_sorted[i].pid == procs[j].pid) {
+                procs[j] = procs_sorted[i];
+            }
+        }
+    }
+
+    return downgraded;
 }
 
 vector<proc> scheduleQueueShortestJobFirst(vector<proc> &procs, int quantum, int &totalRemaining, int &time)
