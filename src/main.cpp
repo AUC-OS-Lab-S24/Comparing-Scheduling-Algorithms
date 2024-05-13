@@ -1,4 +1,5 @@
 #include "proc.cpp"
+#include "first_come_sched.h"
 #include <vector>
 #include <iostream>
 #include <climits>
@@ -309,8 +310,6 @@ int main(int argc, char const *argv[])
          << endl
          << "Test for shortest job first" << endl;
 
-    // tests for FCFS
-
     // tests for shortest job first
     procs = initProcVec(5, false);
     shortestJobFirst(procs);
@@ -328,7 +327,13 @@ int main(int argc, char const *argv[])
         cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << " completion_time: " << p.completion_time << " response_time: " << p.response_time << " waiting_time: " << p.waiting_time << " turnarround_time: " << p.turnarround_time << endl;
     }
 
-    // tests for MLFQ
+    cout << "\nTest for FCFS" << endl;
+    procs = initProcVec(5, false);
+    first_come_first_serve(procs);
+    for (auto p : procs)
+    {
+        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << " completion_time: " << p.completion_time << " response_time: " << p.response_time << " waiting_time: " << p.waiting_time << " turnarround_time: " << p.turnarround_time << endl;
+    }
 
     return 0;
 }

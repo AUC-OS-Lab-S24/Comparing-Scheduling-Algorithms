@@ -1,3 +1,5 @@
+#ifndef _PROC_H_
+#define _PROC_H_
 #include "proc.h"
 
 class proc
@@ -25,6 +27,7 @@ public:
     {
         return pid < other_process.pid; // sort by id
     }
+
  
     proc(int pid, int arrival_time, int execution_time) {
         this->pid = pid;
@@ -53,3 +56,5 @@ public:
         turnarround_time = waiting_time + execution_time;
     }
 };
+
+#endif
