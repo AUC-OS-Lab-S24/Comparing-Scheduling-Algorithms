@@ -89,6 +89,11 @@ void roundRobin(vector<proc> procs, int quantum)
 int main(int argc, char const *argv[])
 {
     // tests for round robin
-
+    vector<proc> procs = initSetProc(5);
+    roundRobin(procs, 1);
+    for (auto p : procs)
+    {
+        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << " completion_time: " << p.completion_time << " response_time: " << p.response_time << " waiting_time: " << p.waiting_time << " turnarround_time: " << p.turnarround_time << endl;
+    }
     return 0;
 }
