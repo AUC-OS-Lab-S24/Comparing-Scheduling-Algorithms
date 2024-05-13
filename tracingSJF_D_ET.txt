@@ -1,0 +1,24 @@
+0: p0 becomes 9
+1: p1 becomes 7
+2: p2 becomes 5
+3: p3 becomes 3
+4: p4 becomes 1
+5: p4 becomes 0 ( finishes at 6 )
+6: p3 becomes 2
+7: p3 becomes 1
+8: p3 becomes 0 ( finishes at 9 )
+9: p2 becomes 4
+10: p2 becomes 3
+11: p2 becomes 2
+12: p2 becomes 1
+13: p2 becomes 0 ( finishes at 14 )
+14: p1 becomes 6
+15: p1 becomes 5
+16: p1 becomes 4
+17: p1 becomes 3
+18: p1 becomes 2
+19: p1 becomes 1
+20: p1 becomes 0 ( finishes at 21 )
+21: p0 becomes 8
+...
+29: p0 becomes 0 ( finishes at 30 )

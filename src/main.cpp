@@ -1,14 +1,16 @@
 #include "proc.cpp"
 #include <vector>
 #include <iostream>
+#include <climits>
 
 using namespace std;
 
 // Algorithims: Round Robin, First Come First Serve, Shortest Job First, Multilevel Feedback Queue
 // Initialise a set of process with arrival time (which will be incremented one by one), execution_time (random value from 1 to 50), pids (start from 0 and increment)
-vector<proc> initProcVec(int n, bool random = true)
+vector<proc> initProcVec(int n, bool random = true, bool highestExecutionTimeFirst = false)
 {
     vector<proc> procs;
+
     for (int i = 0; i < n; i++)
     {
         proc p;
@@ -16,6 +18,8 @@ vector<proc> initProcVec(int n, bool random = true)
         p.arrival_time = i;
         if (random)
             p.execution_time = rand() % 50 + 1;
+        else if (highestExecutionTimeFirst)
+            p.execution_time = 2 * (n - i);
         else
             p.execution_time = i + 1;
 
@@ -89,11 +93,78 @@ void roundRobin(vector<proc> &procs, int quantum)
     }
 }
 
+void shortestJobFirst(vector<proc> &procs) // https://www.geeksforgeeks.org/program-for-shortest-job-first-or-sjf-cpu-scheduling-set-1-non-preemptive/
+{
+    int n = procs.size();
+    int execution_times[n]; // remaining execution time for each process
+    for (auto p : procs)
+    {
+        execution_times[p.pid] = p.execution_time;
+    }
+    int time = 0;
+    int remaining = n;
+
+    while (remaining > 0)
+    {
+        int min = INT_MAX;
+        int turn = -1;
+        for (int i = 0; i < n; i++)
+        {
+            if (procs[i].arrival_time <= time && execution_times[i] < min && execution_times[i] > 0)
+            {
+                min = execution_times[i];
+                turn = i;
+            }
+        }
+        if (turn == -1)
+        {
+            time++;
+            continue;
+        }
+        if (procs[turn].response_time == -1)
+        {
+            procs[turn].response_time = time - procs[turn].arrival_time;
+        }
+        time += 1;
+        execution_times[turn] -= 1;
+        if (execution_times[turn] == 0)
+        {
+            remaining--;
+            procs[turn].completion_time = time;
+            procs[turn].turnarround_time = procs[turn].completion_time - procs[turn].arrival_time;
+            procs[turn].waiting_time = procs[turn].turnarround_time - procs[turn].execution_time;
+        }
+    }
+}
+
 int main(int argc, char const *argv[])
 {
     // tests for round robin
+    cout << "Test for round robin" << endl;
     vector<proc> procs = initProcVec(3, false);
     roundRobin(procs, 3);
+    for (auto p : procs)
+    {
+        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << " completion_time: " << p.completion_time << " response_time: " << p.response_time << " waiting_time: " << p.waiting_time << " turnarround_time: " << p.turnarround_time << endl;
+    }
+    cout << endl
+         << endl
+         << "Test for shortest job first" << endl;
+
+    // tests for FCFS
+
+    // tests for shortest job first
+    procs = initProcVec(5, false);
+    shortestJobFirst(procs);
+    for (auto p : procs)
+    {
+        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << " completion_time: " << p.completion_time << " response_time: " << p.response_time << " waiting_time: " << p.waiting_time << " turnarround_time: " << p.turnarround_time << endl;
+    }
+    cout << endl
+         << endl
+         << "Test for shortest job first with decreasing execution time" << endl;
+    procs = initProcVec(5, false, true);
+    shortestJobFirst(procs);
     for (auto p : procs)
     {
         cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << " completion_time: " << p.completion_time << " response_time: " << p.response_time << " waiting_time: " << p.waiting_time << " turnarround_time: " << p.turnarround_time << endl;
