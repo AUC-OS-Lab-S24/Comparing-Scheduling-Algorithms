@@ -67,7 +67,7 @@ int main(int argc, char const *argv[])
     else if (strcmp(argv[1], "-r") == 0)
     {
         cout << "\nRunning actual tests" << endl;
-        test_avg_times(10000);
+        test_avg_times(1000);
     }
 
     return 0;

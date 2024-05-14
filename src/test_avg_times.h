@@ -76,9 +76,9 @@ avg_times_list get_avg_times_iteration(vector<proc> &procs) {
         cout << "shortest job first" << endl;
         shortestJobFirst(shortest_job_first_procs);
         cout << "round robin" << endl;
-        roundRobin(round_robin_procs, 1);
+        roundRobin(round_robin_procs, 3);
         cout << "multi level feedback queue" << endl;
-        multilevelFeedbackQueue(multi_level_feedback_procs);
+        multi_level_feedback_procs = multilevelFeedbackQueue(multi_level_feedback_procs);
         cout << "first come first serve" << endl;
         first_come_first_serve(first_come_sched_procs);
 
@@ -146,8 +146,8 @@ void test_avg_times(int number_of_procs){
     responseTimes << "Number of Processes, Shortest Job First, Round Robin, Multi Level Feedback, First Come First Serve" << endl;
     turnaroundTimes << "Number of Processes, Shortest Job First, Round Robin, Multi Level Feedback, First Come First Serve" << endl;
 
-    for (int i = 2; i <= number_of_procs; i += 1000){
-        procs = initProcVec(i, true, false);
+    for (int i = 2; i <= number_of_procs; i += 100){
+        procs = initProcVec(i, false, false);
 
     
         avg_times_list list = get_avg_times_iteration(procs);
@@ -157,16 +157,23 @@ void test_avg_times(int number_of_procs){
         vector<int> avg_turnaround_times = list[1];
         vector<int> avg_response_times = list[2];
 
-        for (int j = 0; j < i; j++){
-            waitingTimes << i << "," << avg_waiting_times[j] << ",";
-            responseTimes << i << "," << avg_response_times[j] << ",";
-            turnaroundTimes << i << "," << avg_turnaround_times[j] << ",";
+
+        waitingTimes << i << ",";
+        responseTimes << i << ",";
+        turnaroundTimes << i << ",";
+
+        for (int j = 0; j < 4; j++){
+            waitingTimes << avg_waiting_times[j] << ",";
+            responseTimes << avg_response_times[j] << ",";
+            turnaroundTimes << avg_turnaround_times[j] << ",";
         }
 
 
         waitingTimes << endl;
         responseTimes << endl;
         turnaroundTimes << endl;
+
+        list = {};
 
         cout << "Done with " << i << " processes" << endl;
     }
