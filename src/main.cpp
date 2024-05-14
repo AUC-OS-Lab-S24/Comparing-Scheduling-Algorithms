@@ -198,6 +198,15 @@ vector<proc> scheduleQueueRoundRobin(vector<proc> &update_me, vector<proc> &proc
                     procs[turn].completion_time = time;
                     procs[turn].turnarround_time = procs[turn].completion_time - procs[turn].arrival_time;
                     procs[turn].waiting_time = procs[turn].turnarround_time - procs[turn].execution_time;
+
+                    for (int j = 0; j < n; j++)
+                    {
+                        if (procs[turn].pid == update_me[j].pid)
+                        {
+                            update_me[j] = procs[turn];
+                        }
+                    }
+
                     // remove process from procs and update remaininh
                     procs.erase(procs.begin() + turn);
                     n--;
@@ -216,6 +225,7 @@ vector<proc> scheduleQueueRoundRobin(vector<proc> &update_me, vector<proc> &proc
             }
         }
     }
+
     return downgraded;
 }
 
@@ -296,9 +306,9 @@ vector<proc> scheduleQueueFirstComeFirstServe(vector<proc> &update_me, vector<pr
     {
         for (int j = 0; j < n; j++)
         {
-            if (procs_sorted[i].pid == procs[j].pid)
+            if (procs_sorted[i].pid == update_me[j].pid)
             {
-                procs[j] = procs_sorted[i];
+                update_me[j] = procs_sorted[i];
             }
         }
     }
@@ -348,6 +358,15 @@ vector<proc> scheduleQueueShortestJobFirst(vector<proc> &update_me, vector<proc>
             procs[turn].completion_time = time;
             procs[turn].turnarround_time = procs[turn].completion_time - procs[turn].arrival_time;
             procs[turn].waiting_time = procs[turn].turnarround_time - procs[turn].execution_time;
+
+            for (int j = 0; j < n; j++)
+            {
+                if (procs[turn].pid == update_me[j].pid)
+                {
+                    update_me[j] = procs[turn];
+                }
+            }
+            
             totalRemaining--;
         }
         else
@@ -360,6 +379,7 @@ vector<proc> scheduleQueueShortestJobFirst(vector<proc> &update_me, vector<proc>
             }
         }
     }
+
     return downgraded;
 }
 
@@ -390,8 +410,11 @@ void multilevelFeedbackQueue(vector<proc> &procs, int numberOfQueues = 3, vector
         queues[0].push_back(p);
     }
 
+
+
     while (remaining > 0)
     {
+        
         for (int i = 0; i < numberOfQueues; i++)
         {
             // check if queue is empty or has no arrived yet
@@ -478,6 +501,7 @@ void multilevelFeedbackQueue(vector<proc> &procs, int numberOfQueues = 3, vector
             }
         }
     }
+
     for (auto p : procs)
     {
         cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << " completion_time: " << p.completion_time << " response_time: " << p.response_time << " waiting_time: " << p.waiting_time << " turnarround_time: " << p.turnarround_time << endl;
