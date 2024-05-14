@@ -3,6 +3,7 @@
 #include <vector>
 #include <iostream>
 #include <climits>
+#include <string.h>
 
 using namespace std;
 
@@ -27,6 +28,8 @@ vector<proc> initProcVec(int n, bool random = true, bool highestExecutionTimeFir
         // Currently unkown
         p.waiting_time = 0;
         p.turnarround_time = 0; // will be known when waiting_time is known
+        p.timeRemaining = p.execution_time;
+        p.status = proc::NEW;
 
         p.completion_time = 0; // TAT + AT
         p.response_time = -1;  // RT = TIME OF FIRST SCHEDULE - AT
@@ -217,50 +220,54 @@ vector<proc> multilevelFeedbackQueue(vector<proc> &proces)
 
 int main(int argc, char const *argv[])
 {
-    // tests for round robin
-    cout << "Test for round robin" << endl;
-    vector<proc> procs = initProcVec(3, false);
-    roundRobin(procs, 3);
-    for (auto p : procs)
+    // if -t argument is passed print out sample tests
+    if (argc == 2 && strcmp(argv[1], "-t") == 0)
     {
-        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << " completion_time: " << p.completion_time << " response_time: " << p.response_time << " waiting_time: " << p.waiting_time << " turnarround_time: " << p.turnarround_time << endl;
-    }
-    cout << endl
-         << endl
-         << "Test for shortest job first" << endl;
+        // tests for round robin
+        cout << "Test for round robin" << endl;
+        vector<proc> procs = initProcVec(3, false);
+        roundRobin(procs, 3);
+        for (auto p : procs)
+        {
+            cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << " completion_time: " << p.completion_time << " response_time: " << p.response_time << " waiting_time: " << p.waiting_time << " turnarround_time: " << p.turnarround_time << endl;
+        }
+        cout << endl
+             << endl
+             << "Test for shortest job first" << endl;
 
-    // tests for shortest job first
-    procs = initProcVec(5, false);
-    shortestJobFirst(procs);
-    for (auto p : procs)
-    {
-        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << " completion_time: " << p.completion_time << " response_time: " << p.response_time << " waiting_time: " << p.waiting_time << " turnarround_time: " << p.turnarround_time << endl;
-    }
-    cout << endl
-         << endl
-         << "Test for shortest job first with decreasing execution time" << endl;
-    procs = initProcVec(5, false, true);
-    shortestJobFirst(procs);
-    for (auto p : procs)
-    {
-        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << " completion_time: " << p.completion_time << " response_time: " << p.response_time << " waiting_time: " << p.waiting_time << " turnarround_time: " << p.turnarround_time << endl;
-    }
+        // tests for shortest job first
+        procs = initProcVec(5, false);
+        shortestJobFirst(procs);
+        for (auto p : procs)
+        {
+            cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << " completion_time: " << p.completion_time << " response_time: " << p.response_time << " waiting_time: " << p.waiting_time << " turnarround_time: " << p.turnarround_time << endl;
+        }
+        cout << endl
+             << endl
+             << "Test for shortest job first with decreasing execution time" << endl;
+        procs = initProcVec(5, false, true);
+        shortestJobFirst(procs);
+        for (auto p : procs)
+        {
+            cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << " completion_time: " << p.completion_time << " response_time: " << p.response_time << " waiting_time: " << p.waiting_time << " turnarround_time: " << p.turnarround_time << endl;
+        }
 
-    cout << "\nTest for FCFS" << endl;
-    procs = initProcVec(5, false);
-    first_come_first_serve(procs);
-    for (auto p : procs)
-    {
-        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << " completion_time: " << p.completion_time << " response_time: " << p.response_time << " waiting_time: " << p.waiting_time << " turnarround_time: " << p.turnarround_time << endl;
-    }
+        cout << "\nTest for FCFS" << endl;
+        procs = initProcVec(5, false);
+        first_come_first_serve(procs);
+        for (auto p : procs)
+        {
+            cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << " completion_time: " << p.completion_time << " response_time: " << p.response_time << " waiting_time: " << p.waiting_time << " turnarround_time: " << p.turnarround_time << endl;
+        }
 
-    cout << "\nTest for multilevel feedback queue" << endl;
-    procs = initProcVec(5, false);
-    vector<proc> finishedProcesses = multilevelFeedbackQueue(procs);
-    for (auto p : finishedProcesses)
-    {
-        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << " completion_time: " << p.completion_time << " response_time: " << p.response_time << " waiting_time: " << p.waiting_time << " turnarround_time: " << p.turnarround_time << endl;
-    }
+        cout << "\nTest for multilevel feedback queue" << endl;
+        procs = initProcVec(5, false);
+        vector<proc> finishedProcesses = multilevelFeedbackQueue(procs);
+        for (auto p : finishedProcesses)
+        {
+            cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << " completion_time: " << p.completion_time << " response_time: " << p.response_time << " waiting_time: " << p.waiting_time << " turnarround_time: " << p.turnarround_time << endl;
+        }
+    } 
 
     return 0;
 }
