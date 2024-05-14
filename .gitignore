@@ -60,3 +60,7 @@ myapp
 src/main
 myapp
 myapp
+
+avg_response_times.csv
+avg_turnaround_times.csv
+avg_waiting_times.csv

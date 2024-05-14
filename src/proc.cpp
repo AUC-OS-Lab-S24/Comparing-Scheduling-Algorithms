@@ -1,6 +1,8 @@
 #ifndef _PROC_H_
 #define _PROC_H_
+
 #include "proc.h"
+#include <random>   
 
 class proc
 {
@@ -32,7 +34,18 @@ public:
         return pid < other_process.pid; // sort by id
     }
 
- 
+    void randProc(int n) {
+        this->pid = n;
+        this->arrival_time = rand() % 1000;
+        this->execution_time = rand() % 1000;
+        this->turnarround_time = 0;
+        this->waiting_time = 0;
+        this->completion_time = 0;
+        this->response_time = -1;
+        this->timeRemaining = execution_time;
+        this->status = NEW; 
+    }
+
     proc(int pid, int arrival_time, int execution_time) {
         this->pid = pid;
         this->arrival_time = arrival_time;
