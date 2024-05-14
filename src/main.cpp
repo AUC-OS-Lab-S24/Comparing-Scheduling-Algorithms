@@ -138,350 +138,81 @@ void shortestJobFirst(vector<proc> &procs) // https://www.geeksforgeeks.org/prog
     }
 }
 
-enum SchedulerType
+bool areAllQueuesEmpty(const vector<queue<proc>> &queues)
 {
-    ROUND_ROBIN,
-    FIRST_COME_FIRST_SERVE,
-    SHORTEST_JOB_FIRST
-};
-
-vector<proc> scheduleQueueRoundRobin(vector<proc> &update_me, vector<proc> &procs, int quantum, int &totalRemaining, int &time)
-{
-    // we will run round robin but we will return the proccess that will be downgraded in a vecotor and we will remove them from procs and update remaining if a processes ends
-    vector<proc> downgraded;
-    int n = procs.size();
-    int execution_times[n]; // remaining execution time for each process
-    for (auto p : procs)
+    for (const auto &q : queues)
     {
-        execution_times[p.pid] = p.execution_time;
-    }
-    int remaining = n;
-    int turn = 0;
-
-    // represents a time quantum
-    while (remaining > 0 && n > 0)
-    {
-        int remainingQuantum = quantum;
-        while (remainingQuantum > 0 && remaining > 0 && n > 0)
+        if (!q.empty())
         {
-            turn = turn % n;
-            // attempt to give turn to a process with that pid for time quantum
-            if (procs[turn].arrival_time > time)
-            {
-                turn = (turn + 1) % n; // next turn if not arrived
-                continue;
-            }
-            if (execution_times[procs[turn].pid] > 0) // proc has not completed
-            {
-                if (procs[turn].response_time == -1)
-                {
-                    procs[turn].response_time = time - procs[turn].arrival_time;
-                }
-                if (execution_times[procs[turn].pid] > remainingQuantum) // proc will not complete in this quantum
-                {
-                    time += remainingQuantum;
-                    execution_times[procs[turn].pid] -= remainingQuantum;
-                    if (remainingQuantum == quantum)
-                    {
-                        downgraded.push_back(procs[turn]);
-                        procs.erase(procs.begin() + turn);
-                        n--;
-                    }
-                    remainingQuantum = 0;
-                    turn = (turn + 1) % n; // next turn if process has not completed
-                }
-                else
-                {
-                    time += execution_times[procs[turn].pid];
-                    remainingQuantum -= execution_times[procs[turn].pid];
-                    execution_times[procs[turn].pid] = 0;
-                    procs[turn].completion_time = time;
-                    procs[turn].turnarround_time = procs[turn].completion_time - procs[turn].arrival_time;
-                    procs[turn].waiting_time = procs[turn].turnarround_time - procs[turn].execution_time;
-                    // remove process from procs and update remaininh
-                    procs.erase(procs.begin() + turn);
-                    n--;
-                    remaining--;
-                    totalRemaining--;
-                    if (n == 0)
-                        break;
-                    turn = (turn + 1) % n; // next turn if process has completed
-                }
-            }
-            else
-            {
-                // find next turn of process that has not completed
-                turn = (turn + 1) % n;
-                continue;
-            }
+            return false;
         }
     }
-    return downgraded;
+    return true;
 }
 
-vector<proc> scheduleQueueFirstComeFirstServe(vector<proc> &update_me, vector<proc> &procs, int quantum, int &totalRemaining, int &time)
+vector<proc> multilevelFeedbackQueue(vector<proc> &proces)
 {
-    // we will run first come first serve and return the proccess that will be downgraded in a vecotor and we will remove them from procs and update remaining if a processes ends
-    int n = procs.size();
+    vector<proc> finishedProcesses;
+    vector<queue<proc>> processQueues(3);
+    vector<int> timeSlices = {5, 10, 15};
 
-    int remaining = n;
-
-    std::queue<int> fifo;
-
-    std::vector<proc> downgraded;
-    downgraded = {};
-    std::vector<proc> procs_sorted;
-
-    procs_sorted = procs;
-
-    std::sort(procs_sorted.begin(), procs_sorted.end(), compareByArrivalTime);
-
-    int current_executing_process = 0;
-
-    while (remaining > 0)
+    if (proces.empty())
     {
-        // add all processes that have arrived by the current time to the queue
-        while (current_executing_process < n && procs[current_executing_process].arrival_time <= time)
-        {
-            fifo.push(current_executing_process);
-            current_executing_process++;
-        }
-
-        if (!fifo.empty())
-        {
-            int process_to_execute = fifo.front();
-
-            procs_sorted[process_to_execute].response_time = time - procs_sorted[process_to_execute].arrival_time;
-            if (procs_sorted[process_to_execute].execution_time > quantum)
-            {
-                procs_sorted[process_to_execute].execution_time -= quantum;
-                time += quantum;
-
-                // downgrade the processes since it wont finish executing
-                downgraded.push_back(procs_sorted[process_to_execute]);
-            }
-            else
-            {
-                fifo.pop();
-
-                // If the process is starting for the first time, set its response time
-                if (procs_sorted[process_to_execute].response_time == -1)
-                {
-                    procs_sorted[process_to_execute].response_time = time - procs_sorted[process_to_execute].arrival_time;
-                }
-
-                // Execute the process
-                time += procs_sorted[process_to_execute].execution_time;
-
-                // Calculate completion, turnaround, and waiting times
-                procs_sorted[process_to_execute].completion_time = time;
-                procs_sorted[process_to_execute].turnarround_time = procs[process_to_execute].completion_time - procs[process_to_execute].arrival_time;
-                procs_sorted[process_to_execute].waiting_time = procs[process_to_execute].turnarround_time - procs[process_to_execute].execution_time;
-            }
-            // Decrement the remaining process count
-            remaining--;
-        }
-        else
-        {
-            // If no process is in the queue, move time forward to the next process arrival
-            if (current_executing_process < n)
-            {
-                time = procs[current_executing_process].arrival_time;
-            }
-        }
+        return proces;
     }
 
-    // update procs according to procs_sorted on same pid
-    for (int i = 0; i < n; i++)
+    for (auto &process : proces)
     {
-        for (int j = 0; j < n; j++)
-        {
-            if (procs_sorted[i].pid == procs[j].pid)
-            {
-                procs[j] = procs_sorted[i];
-            }
-        }
+        processQueues[0].push(process);
     }
 
-    return downgraded;
-}
+    int activeQueue = 0;
+    int currentTime = 0;
 
-vector<proc> scheduleQueueShortestJobFirst(vector<proc> &update_me, vector<proc> &procs, int quantum, int &totalRemaining, int &time)
-{
-    // we will run shortest job first and return the proccess that will be downgraded in a vecotor and we will remove them from procs and update remaining if a processes ends
-    vector<proc> downgraded;
-    int n = procs.size();
-    int execution_times[n]; // remaining execution time for each process
-    for (auto p : procs)
+    while (!areAllQueuesEmpty(processQueues))
     {
-        execution_times[p.pid] = p.execution_time;
-    }
-    int remaining = n;
-    vector<int> procTurns(n, 0);
-    while (remaining > 0)
-    {
-        int min = INT_MAX;
-        int turn = -1;
-        for (int i = 0; i < n; i++)
+        if (processQueues[activeQueue].empty())
         {
-            if (procs[i].arrival_time <= time && execution_times[i] < min && execution_times[i] > 0)
-            {
-                min = execution_times[i];
-                turn = i;
-            }
-        }
-        if (turn == -1)
-        {
-            time++;
+            activeQueue = (activeQueue + 1) % 3;
             continue;
         }
-        procTurns[turn] += 1;
-        if (procs[turn].response_time == -1)
+
+        auto &currentProcess = processQueues[activeQueue].front();
+        if (currentProcess.status == proc::NEW)
         {
-            procs[turn].response_time = time - procs[turn].arrival_time;
+            currentProcess.response_time = currentTime - currentProcess.arrival_time;
+            currentProcess.status = proc::RUNNING;
         }
-        time += 1;
-        execution_times[turn] -= 1;
-        if (execution_times[turn] == 0)
+
+        int executionTime = min(timeSlices[activeQueue], currentProcess.timeRemaining);
+        currentTime += executionTime;
+
+        if (currentProcess.timeRemaining <= timeSlices[activeQueue])
         {
-            remaining--;
-            procs[turn].completion_time = time;
-            procs[turn].turnarround_time = procs[turn].completion_time - procs[turn].arrival_time;
-            procs[turn].waiting_time = procs[turn].turnarround_time - procs[turn].execution_time;
-            totalRemaining--;
+            currentProcess.timeRemaining = 0;
+            currentProcess.completion_time = currentTime;
+            currentProcess.turnarround_time = currentProcess.completion_time - currentProcess.arrival_time;
+            currentProcess.waiting_time = currentProcess.turnarround_time - currentProcess.execution_time;
+            currentProcess.status = proc::COMPLETE;
+            finishedProcesses.push_back(currentProcess);
+            processQueues[activeQueue].pop();
         }
         else
         {
-            if (procTurns[turn] == quantum)
+            currentProcess.timeRemaining -= timeSlices[activeQueue];
+            if (activeQueue < 2)
             {
-                downgraded.push_back(procs[turn]);
-                procs.erase(procs.begin() + turn);
-                n--;
+                processQueues[activeQueue + 1].push(currentProcess);
             }
+            else
+            {
+                processQueues[activeQueue].push(currentProcess);
+            }
+            processQueues[activeQueue].pop();
         }
     }
-    return downgraded;
-}
 
-// feedback mechanism: if a process in a lower-priority queue uses up its time slice, it may be moved to a higher-priority queue to ensure it gets more CPU time.
-void multilevelFeedbackQueue(vector<proc> &procs, int numberOfQueues = 3, vector<int> quantums = {2, 4, 8}, vector<SchedulerType> SchedulerTypes = {ROUND_ROBIN, ROUND_ROBIN, ROUND_ROBIN})
-{
-    int n = procs.size();
-    int execution_times[n]; // remaining execution time for each process
-    for (auto p : procs)
-    {
-        execution_times[p.pid] = p.execution_time;
-    }
-    int time = 0;
-    int remaining = n;
-    int turn = 0;
-    // initialise queues
-    vector<vector<proc>> queues;
-    for (int i = 0; i < numberOfQueues; i++)
-    {
-        vector<proc> q;
-        queues.push_back(q);
-    }
-
-    // copy all procs into the first queue
-    for (auto aproc : procs)
-    {
-        proc p(aproc.pid, aproc.arrival_time, aproc.execution_time);
-        queues[0].push_back(p);
-    }
-
-    while (remaining > 0)
-    {
-        for (int i = 0; i < numberOfQueues; i++)
-        {
-            // check if queue is empty or has no arrived yet
-            if (queues[i].size() == 0)
-            {
-                continue;
-            }
-            bool hasArrived = false;
-            for (auto p : queues[i])
-            {
-                if (p.arrival_time <= time)
-                {
-                    hasArrived = true;
-                    break;
-                }
-            }
-            if (!hasArrived)
-            {
-                continue;
-            }
-            // Call strategy on queue i
-            vector<proc> downgrade;
-            if (SchedulerTypes[i] == ROUND_ROBIN)
-            {
-                cout << "Scheduling queue " << i << " with round robin" << endl;
-                cout << "Quantum: " << quantums[i] << endl;
-                cout << "Remaining: " << remaining << endl;
-                for (auto p : queues[i])
-                {
-                    if (p.arrival_time <= time)
-                        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << endl;
-                }
-                downgrade = scheduleQueueRoundRobin(procs, queues[i], quantums[i], remaining, time);
-                cout << "Downgraded: " << downgrade.size() << endl;
-                for (auto p : queues[i])
-                {
-                    if (p.arrival_time <= time)
-                        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << endl;
-                }
-            }
-            else if (SchedulerTypes[i] == FIRST_COME_FIRST_SERVE)
-            {
-                cout << "Scheduling queue " << i << " with first come first serve" << endl;
-                cout << "Quantum: " << quantums[i] << endl;
-                cout << "Remaining: " << remaining << endl;
-                for (auto p : queues[i])
-                {
-                    if (p.arrival_time <= time)
-                        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << endl;
-                }
-                downgrade = scheduleQueueFirstComeFirstServe(procs, queues[i], quantums[i], remaining, time);
-                cout << "Downgraded: " << downgrade.size() << endl;
-                for (auto p : queues[i])
-                {
-                    if (p.arrival_time <= time)
-                        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << endl;
-                }
-            }
-            else if (SchedulerTypes[i] == SHORTEST_JOB_FIRST)
-            {
-                cout << "Scheduling queue " << i << " with shortest job first" << endl;
-                cout << "Quantum: " << quantums[i] << endl;
-                cout << "Remaining: " << remaining << endl;
-                for (auto p : queues[i])
-                {
-                    if (p.arrival_time <= time)
-                        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << endl;
-                }
-                downgrade = scheduleQueueShortestJobFirst(procs, queues[i], quantums[i], remaining, time);
-                cout << "Downgraded: " << downgrade.size() << endl;
-                for (auto p : queues[i])
-                {
-                    if (p.arrival_time <= time)
-                        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << endl;
-                }
-            }
-            // add downgraded processes to next queue
-            for (auto p : downgrade)
-            {
-                if (i + 1 < numberOfQueues)
-                    queues[i + 1].push_back(p);
-                else
-                    queues[0].push_back(p); // to implement feedback
-            }
-        }
-    }
-    for (auto p : procs)
-    {
-        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << " completion_time: " << p.completion_time << " response_time: " << p.response_time << " waiting_time: " << p.waiting_time << " turnarround_time: " << p.turnarround_time << endl;
-    }
+    return finishedProcesses;
 }
 
 int main(int argc, char const *argv[])
@@ -525,7 +256,11 @@ int main(int argc, char const *argv[])
 
     cout << "\nTest for multilevel feedback queue" << endl;
     procs = initProcVec(5, false);
-    multilevelFeedbackQueue(procs);
+    vector<proc> finishedProcesses = multilevelFeedbackQueue(procs);
+    for (auto p : finishedProcesses)
+    {
+        cout << "pid: " << p.pid << " arrival_time: " << p.arrival_time << " execution_time: " << p.execution_time << " completion_time: " << p.completion_time << " response_time: " << p.response_time << " waiting_time: " << p.waiting_time << " turnarround_time: " << p.turnarround_time << endl;
+    }
 
     return 0;
 }

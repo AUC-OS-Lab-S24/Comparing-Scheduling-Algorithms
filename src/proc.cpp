@@ -22,6 +22,10 @@ public:
     int completion_time; // time process completes execution aka exit time
 
     int response_time; // time between arrival time and getting the CPU for the first time
+    int timeRemaining; //remaining execution time
+
+
+    enum Status { NEW, RUNNING, COMPLETE } status;
 
     bool operator<(const proc &other_process) const
     {
@@ -37,6 +41,8 @@ public:
         this->waiting_time = 0;
         this->completion_time = 0;
         this->response_time = 0;
+        this->timeRemaining = execution_time;
+        this->status = NEW;
     }
 
     proc() {
@@ -47,6 +53,8 @@ public:
         this->waiting_time = 0;
         this->completion_time = 0;
         this->response_time = 0;
+        this->timeRemaining = 0;
+        this->status = NEW;
     }
 
     ~proc() {}
